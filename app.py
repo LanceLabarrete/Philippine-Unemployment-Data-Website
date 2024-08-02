@@ -77,7 +77,7 @@ def update_plot(selected_region):
     filtered_df.columns = ['Date', 'Value']
     
     # Create a Plotly Express bar plot
-    fig = px.bar(
+    fig = px.line(
         filtered_df,
         x='Date',
         y='Value',
