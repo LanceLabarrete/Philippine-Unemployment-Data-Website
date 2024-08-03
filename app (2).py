@@ -71,7 +71,7 @@ app.layout = html.Div([
                 options=[{'label': str(col), 'value': str(col)} for col in unemployment_df2.columns if col != 'Region'],
                 value=unemployment_df2.columns[1]
             ),
-            dcc.Loading(id="map-loading", children=dcc.Graph(id="map-graph"))
+            dcc.Loading(id="map-loading", children=dcc.Graph(id='map-graph', style={'height': '500px', 'width': '100%'}))
         ])  
 
     ], style={
@@ -101,16 +101,16 @@ def update_plots(selected_region, selected_date):
             filtered_df,
             x='Date',
             y='Value',
-            title=f'Unemployment Data for {selected_region}',
-            labels={'Date': 'Date', 'Value': 'Value'}
+            title=f'Unemployment Rate for {selected_region}',
+            labels={'Date': 'Date', 'Value': 'Unemployment Rate'}
         )
         
         fig_region.update_xaxes(
             tickformat='%b-%Y',
             title='Date'
         )
-        print('////////////////////////////////////////////////////////////////////')
-        print(selected_date)
+        # print('////////////////////////////////////////////////////////////////////')
+        # print(selected_date)
         # Update map
         fig_map = update_map(selected_date)
     
