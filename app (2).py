@@ -22,7 +22,7 @@ unemployment_df2 = pd.read_csv(dataset_folder / "Data101 Unemployment Rate.csv")
 # unemployment_df2['index'] = pd.to_datetime(unemployment_df2['index'])
 
 merged_gdf = map.merge(unemployment_df2, left_on='adm1_en', right_on='Region', how='left')
-
+merged_gdf = merged_gdf.to_crs(epsg=4326)
 regions = unemployment_df.iloc[:, 0]
 regions.tolist()
 
