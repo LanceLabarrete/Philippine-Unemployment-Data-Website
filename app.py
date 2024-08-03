@@ -26,6 +26,59 @@ merged_gdf = merged_gdf.to_crs(epsg=4326)
 regions = unemployment_df.iloc[:, 0]
 regions.tolist()
 
+# Classify regions
+luzon_regions = [
+    "National Capital Region (NCR)", "Cordillera Administrative Region (CAR)",
+    "Region I (Ilocos Region)", "Region II (Cagayan Valley)",
+    "Region III (Central Luzon)", "Region IV-A (CALABARZON)",
+    "MIMAROPA Region", "Region V (Bicol Region)"
+]
+
+visayas_regions = [
+    "Region VI (Western Visayas)", "Region VII (Central Visayas)", "Region VIII (Eastern Visayas)"
+]
+
+mindanao_regions = [
+    "Region IX (Zamboanga Peninsula)", "Region X (Northern Mindanao)",
+    "Region XI (Davao Region)", "Region XII (SOCCSKSARGEN)",
+    "Region XIII (Caraga)", "Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)"
+]
+
+# Calculate average unemployment rates
+unemployment_df_avg = unemployment_df2.set_index('Region').mean(axis=1).reset_index()
+unemployment_df_avg.columns = ['Region', 'Average_Unemployment_Rate']
+
+# Assign output values
+output_values = {
+    "National Capital Region (NCR)": 250,
+    "Cordillera Administrative Region (CAR)": 50,
+    "Region I (Ilocos Region)": 70,
+    "Region II (Cagayan Valley)": 60,
+    "Region III (Central Luzon)": 200,
+    "Region IV-A (CALABARZON)": 220,
+    "MIMAROPA Region": 30,
+    "Region V (Bicol Region)": 40,
+    "Region VI (Western Visayas)": 100,
+    "Region VII (Central Visayas)": 120,
+    "Region VIII (Eastern Visayas)": 90,
+    "Region IX (Zamboanga Peninsula)": 40,
+    "Region X (Northern Mindanao)": 80,
+    "Region XI (Davao Region)": 110,
+    "Region XII (SOCCSKSARGEN)": 70,
+    "Region XIII (Caraga)": 40,
+    "Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)": 20
+}
+
+# Add output values to the dataframe
+unemployment_df_avg['Output'] = unemployment_df_avg['Region'].map(output_values)
+
+# Filter regions by Luzon, Visayas, and Mindanao
+unemployment_df_avg['Group'] = np.where(unemployment_df_avg['Region'].isin(luzon_regions), 'Luzon', np.where(unemployment_df_avg['Region'].isin(visayas_regions), 'Visayas', 'Mindanao'))
+
+# Transpose the dataframe for the dropdown and bar plot
+unemployment_df_t = unemployment_df.T.reset_index()
+unemployment_df_t.columns = ['index'] + list(unemployment_df.index)
+
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 navbar = dbc.NavbarSimple(
@@ -55,9 +108,17 @@ app.layout = html.Div([
             ),
             
             ]), 
-        dcc.Loading(id="map-loading2", children=dcc.Graph(id='region-plot'))
+        dbc.Row(children = [
+            dbc.Col(children = [dcc.Loading(id="map-loading2", children=dcc.Graph(id='region-plot')),
+            # html.H1("Correlation Graph", style={"font-weight": "bold"}),
+            # html.P("This graph shows the correlation between average unemployment rates and output per region."),
+              ]),
+            dbc.Col(children=[dcc.Graph(id='correlation-plot')])
+             
+        ])
+        
     ], style={
-        'width': '48%',
+        'width': '68%',
         'display': 'inline-block',
         'vertical-align': 'top',
         'padding': '10px'
@@ -75,7 +136,7 @@ app.layout = html.Div([
         ])  
 
     ], style={
-        'width': '48%',
+        'width': '28%',
         'display': 'inline-block',
         'vertical-align': 'top',
         'padding': '10px'
@@ -84,6 +145,7 @@ app.layout = html.Div([
 
 @app.callback(
     Output('region-plot', 'figure'),
+    Output('correlation-plot', 'figure'),
     Output('map-graph', 'figure'),
     Input('region-dropdown', 'value'),
     Input('date-dropdown', 'value')
@@ -109,12 +171,20 @@ def update_plots(selected_region, selected_date):
             tickformat='%b-%Y',
             title='Date'
         )
-        # print('////////////////////////////////////////////////////////////////////')
-        # print(selected_date)
-        # Update map
+       
+        fig_corr = px.scatter(
+        unemployment_df_avg,
+        x='Average_Unemployment_Rate',
+        y='Output',
+        color='Group',
+        title='Correlation Graph',
+        labels={'Average_Unemployment_Rate': 'Average Unemployment Rate (%)', 'Output': 'Output'}
+        )
+
+
         fig_map = update_map(selected_date)
     
-        return fig_region, fig_map
+        return fig_region, fig_corr, fig_map
     except Exception as e:
         print(f"An error occurred: {e}")
         print(traceback.format_exc())

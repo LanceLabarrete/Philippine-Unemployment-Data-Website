@@ -138,7 +138,7 @@ def update_map(selected_column):
         center={"lat": merged_gdf.geometry.centroid.y.mean(), "lon": merged_gdf.geometry.centroid.x.mean()},
         opacity=0.5
     )
-    print('////////////////////////////////////////////////////////////////////')
+    # print('////////////////////////////////////////////////////////////////////')
         
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
